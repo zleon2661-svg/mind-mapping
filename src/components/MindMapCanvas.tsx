@@ -1,0 +1,24 @@
+import { Background, Controls, ReactFlow, type Edge, type NodeMouseHandler, type OnNodeDrag, type ReactFlowInstance } from '@xyflow/react'
+import '@xyflow/react/dist/style.css'
+import { useEffect, useMemo, useState } from 'react'
+import { childrenOf, visibleNodeIds } from '../model/layout'
+import type { MindMapDocument, Point } from '../model/types'
+import MindNode, { type MindFlowNode } from './MindNode'
+
+interface Props { document: MindMapDocument; selectedId?: string; searchTerm: string; centerSignal: number; onSelect: (id?: string) => void; onMove: (id: string, position: Point) => void; onRename: (id: string, label: string) => void; onToggleCollapse: (id: string) => void }
+const nodeTypes = { mind: MindNode }
+
+export default function MindMapCanvas({ document, selectedId, searchTerm, centerSignal, onSelect, onMove, onRename, onToggleCollapse }: Props) {
+  const [flow, setFlow] = useState<ReactFlowInstance<MindFlowNode, Edge> | null>(null)
+  const visible = useMemo(() => visibleNodeIds(document), [document])
+  const nodes = useMemo<MindFlowNode[]>(() => document.nodes.filter((node) => visible.has(node.id)).map((node) => ({ id: node.id, type: 'mind', position: node.position, selected: node.id === selectedId, data: { label: node.label, collapsed: node.collapsed, hasChildren: childrenOf(document, node.id).length > 0, searchHit: searchTerm.trim().length > 0 && node.label.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase()), onRename, onToggleCollapse } })), [document, onRename, onToggleCollapse, searchTerm, selectedId, visible])
+  const edges = useMemo<Edge[]>(() => document.edges.filter((edge) => visible.has(edge.source) && visible.has(edge.target)).map((edge) => ({ ...edge, type: 'smoothstep', animated: false })), [document.edges, visible])
+  useEffect(() => {
+    if (!flow) return
+    const selected = selectedId ? document.nodes.find((node) => node.id === selectedId) : undefined
+    requestAnimationFrame(() => selected ? flow.setCenter(selected.position.x + 70, selected.position.y + 25, { zoom: 1.2, duration: 250 }) : flow.fitView({ padding: 0.25, duration: 250 }))
+  }, [centerSignal, document.nodes, flow, selectedId])
+  const onNodeClick: NodeMouseHandler = (_, node) => onSelect(node.id)
+  const onDragStop: OnNodeDrag = (_, node) => onMove(node.id, node.position)
+  return <div className="canvas" aria-label="Mind map canvas"><ReactFlow<MindFlowNode, Edge> nodes={nodes} edges={edges} nodeTypes={nodeTypes} onInit={setFlow} onNodeClick={onNodeClick} onNodeDragStop={onDragStop} onPaneClick={() => onSelect(undefined)} fitView><Background gap={18} /><Controls showInteractive={false} /></ReactFlow></div>
+}

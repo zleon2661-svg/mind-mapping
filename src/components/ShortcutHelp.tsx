@@ -1,0 +1,1 @@
+export default function ShortcutHelp() { return <details className="shortcut-help"><summary>Keyboard shortcuts</summary><p><kbd>Tab</kbd> child · <kbd>Enter</kbd> sibling · <kbd>Delete</kbd> remove · <kbd>⌘/Ctrl Z</kbd> undo · <kbd>⌘/Ctrl Shift Z</kbd> or <kbd>Ctrl Y</kbd> redo</p></details> }

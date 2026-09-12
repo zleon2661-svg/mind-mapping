@@ -1,0 +1,3 @@
+import type { MindMapDocument } from '../model/types'
+interface Props { document: MindMapDocument; value: string; onChange: (value: string) => void; onPick: (id: string) => void }
+export default function SearchPanel({ document, value, onChange, onPick }: Props) { const matches = value.trim() ? document.nodes.filter((node) => node.label.toLocaleLowerCase().includes(value.toLocaleLowerCase())).slice(0, 8) : []; return <div className="search"><label htmlFor="node-search">Search nodes</label><input id="node-search" value={value} onChange={(event) => onChange(event.target.value)} placeholder="Find an idea…" />{matches.length > 0 && <ul>{matches.map((node) => <li key={node.id}><button onClick={() => onPick(node.id)}>{node.label}</button></li>)}</ul>}</div> }
