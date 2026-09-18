@@ -4,10 +4,10 @@ const HORIZONTAL_GAP = 240
 const VERTICAL_GAP = 100
 
 export function childrenOf(document: MindMapDocument, parentId: NodeId): NodeId[] {
-  return document.edges.filter((edge) => edge.source === parentId).map((edge) => edge.target)
+  return document.edges.filter((edge) => edge.kind === 'tree' && edge.source === parentId).map((edge) => edge.target)
 }
 export function parentOf(document: MindMapDocument, nodeId: NodeId): NodeId | undefined {
-  return document.edges.find((edge) => edge.target === nodeId)?.source
+  return document.edges.find((edge) => edge.kind === 'tree' && edge.target === nodeId)?.source
 }
 export function descendantIds(document: MindMapDocument, rootId: NodeId): Set<NodeId> {
   const found = new Set<NodeId>(); const queue = [rootId]

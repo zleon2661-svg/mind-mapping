@@ -13,7 +13,8 @@ export interface MindNode {
   collapsed: boolean
 }
 
-export interface MindEdge { id: EdgeId; source: NodeId; target: NodeId }
+export type MindEdgeKind = 'tree' | 'relation'
+export interface MindEdge { id: EdgeId; source: NodeId; target: NodeId; kind: MindEdgeKind }
 
 export interface MindMapDocument {
   version: typeof DOCUMENT_VERSION

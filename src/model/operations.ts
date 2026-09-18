@@ -12,7 +12,7 @@ export function addRoot(document: MindMapDocument, label = 'Central idea'): Mind
 }
 export function addChild(document: MindMapDocument, parentId: NodeId, label = 'New idea'): MindMapDocument {
   if (!document.nodes.some((node) => node.id === parentId)) throw new Error('The parent node no longer exists.')
-  canAdd(document); const copy = cloneDocument(document); const id = createId('node'); copy.nodes.push(createNode(id, label, nextChildPosition(copy, parentId))); copy.edges.push({ id: createId('edge'), source: parentId, target: id }); return copy
+  canAdd(document); const copy = cloneDocument(document); const id = createId('node'); copy.nodes.push(createNode(id, label, nextChildPosition(copy, parentId))); copy.edges.push({ id: createId('edge'), source: parentId, target: id, kind: 'tree' }); return copy
 }
 export function addSibling(document: MindMapDocument, nodeId: NodeId, label = 'New idea'): MindMapDocument {
   if (!document.nodes.some((node) => node.id === nodeId)) throw new Error('The selected node no longer exists.'); const parentId = parentOf(document, nodeId); return parentId ? addChild(document, parentId, label) : addRoot(document, label)
@@ -42,3 +42,15 @@ export function deleteSubtree(document: MindMapDocument, nodeId: NodeId): MindMa
   return { version: DOCUMENT_VERSION, nodes: document.nodes.filter((node) => !removed.has(node.id)).map((node) => ({ ...node, position: { ...node.position } })), edges: document.edges.filter((edge) => !removed.has(edge.source) && !removed.has(edge.target)).map((edge) => ({ ...edge })), rootIds: document.rootIds.filter((id) => !removed.has(id)) }
 }
 export function hasChildren(document: MindMapDocument, nodeId: NodeId): boolean { return childrenOf(document, nodeId).length > 0 }
+
+export function connectRelatedNodes(document: MindMapDocument, sourceId: NodeId, targetId: NodeId): MindMapDocument {
+  const sourceExists = document.nodes.some((node) => node.id === sourceId)
+  const targetExists = document.nodes.some((node) => node.id === targetId)
+  if (!sourceExists) throw new Error('The source node no longer exists.')
+  if (!targetExists) throw new Error('The target node no longer exists.')
+  if (sourceId === targetId) throw new Error('A node cannot be connected to itself.')
+  if (document.edges.some((edge) => edge.kind === 'relation' && edge.source === sourceId && edge.target === targetId)) return document
+  const copy = cloneDocument(document)
+  copy.edges.push({ id: createId('edge'), source: sourceId, target: targetId, kind: 'relation' })
+  return copy
+}
