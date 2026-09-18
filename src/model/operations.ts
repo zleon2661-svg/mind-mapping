@@ -12,7 +12,7 @@ export function addRoot(document: MindMapDocument, label = 'Central idea'): Mind
 }
 export function addChild(document: MindMapDocument, parentId: NodeId, label = 'New idea'): MindMapDocument {
   if (!document.nodes.some((node) => node.id === parentId)) throw new Error('The parent node no longer exists.')
-  canAdd(document); const copy = cloneDocument(document); const id = createId('node'); copy.nodes.push(createNode(id, label, nextChildPosition(copy, parentId))); copy.edges.push({ id: createId('edge'), source: parentId, target: id, kind: 'tree' }); return copy
+  canAdd(document); const copy = cloneDocument(document); const id = createId('node'); copy.nodes.find((node) => node.id === parentId)!.collapsed = false; copy.nodes.push(createNode(id, label, nextChildPosition(copy, parentId))); copy.edges.push({ id: createId('edge'), source: parentId, target: id, kind: 'tree' }); return copy
 }
 export function addSibling(document: MindMapDocument, nodeId: NodeId, label = 'New idea'): MindMapDocument {
   if (!document.nodes.some((node) => node.id === nodeId)) throw new Error('The selected node no longer exists.'); const parentId = parentOf(document, nodeId); return parentId ? addChild(document, parentId, label) : addRoot(document, label)

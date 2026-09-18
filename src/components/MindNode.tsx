@@ -14,22 +14,38 @@ export interface MindNodeData extends Record<string, unknown> {
   collapsed: boolean
   hasChildren: boolean
   searchHit: boolean
+  editRequested: boolean
   onRename: (id: string, label: string) => void
+  onEditFinished: (id: string) => void
   onToggleCollapse: (id: string) => void
 }
 export type MindFlowNode = Node<MindNodeData, 'mind'>
 
 export default function MindNode({ id, data, selected }: NodeProps<MindFlowNode>) {
+  const { editRequested, label, onEditFinished } = data
   const [editing, setEditing] = useState(false)
-  const [draft, setDraft] = useState(data.label)
+  const [draft, setDraft] = useState(label)
   const inputRef = useRef<HTMLInputElement>(null)
   const settledRef = useRef(false)
+  const editRequestHandledRef = useRef(false)
 
   useEffect(() => {
     if (!editing) return
     inputRef.current?.focus()
     inputRef.current?.select()
   }, [editing])
+
+  useEffect(() => {
+    if (!editRequested) {
+      editRequestHandledRef.current = false
+      return
+    }
+    if (editing || editRequestHandledRef.current) return
+    editRequestHandledRef.current = true
+    settledRef.current = false
+    setDraft(label)
+    setEditing(true)
+  }, [editRequested, editing, label])
 
   const beginEditing = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation()
@@ -42,16 +58,18 @@ export default function MindNode({ id, data, selected }: NodeProps<MindFlowNode>
     if (!editing || settledRef.current) return
     settledRef.current = true
     setEditing(false)
+    onEditFinished(id)
     const label = draft.trim()
     if (label && label !== data.label) data.onRename(id, label)
-  }, [data, draft, editing, id])
+  }, [data, draft, editing, id, onEditFinished])
 
   const cancelEdit = useCallback(() => {
     if (!editing || settledRef.current) return
     settledRef.current = true
     setDraft(data.label)
     setEditing(false)
-  }, [data.label, editing])
+    onEditFinished(id)
+  }, [data.label, editing, id, onEditFinished])
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     event.stopPropagation()

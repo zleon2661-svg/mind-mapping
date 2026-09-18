@@ -5,14 +5,14 @@ import { childrenOf, visibleNodeIds } from '../model/layout'
 import type { MindMapDocument, Point } from '../model/types'
 import MindNode, { type MindFlowNode } from './MindNode'
 
-interface Props { document: MindMapDocument; selectedId?: string; searchTerm: string; centerSignal: number; onSelect: (id?: string) => void; onMove: (id: string, position: Point) => void; onRename: (id: string, label: string) => void; onToggleCollapse: (id: string) => void; onConnectNodes?: (sourceId: string, targetId: string) => void }
+interface Props { document: MindMapDocument; selectedId?: string; editNodeId?: string; searchTerm: string; centerSignal: number; onSelect: (id?: string) => void; onMove: (id: string, position: Point) => void; onRename: (id: string, label: string) => void; onEditFinished: (id: string) => void; onToggleCollapse: (id: string) => void; onConnectNodes?: (sourceId: string, targetId: string) => void }
 const nodeTypes = { mind: MindNode }
 
-export default function MindMapCanvas({ document, selectedId, searchTerm, centerSignal, onSelect, onMove, onRename, onToggleCollapse, onConnectNodes }: Props) {
+export default function MindMapCanvas({ document, selectedId, editNodeId, searchTerm, centerSignal, onSelect, onMove, onRename, onEditFinished, onToggleCollapse, onConnectNodes }: Props) {
   const [flow, setFlow] = useState<ReactFlowInstance<MindFlowNode, Edge> | null>(null)
   const visible = useMemo(() => visibleNodeIds(document), [document])
-  const nodes = useMemo<MindFlowNode[]>(() => document.nodes.filter((node) => visible.has(node.id)).map((node) => ({ id: node.id, type: 'mind', position: node.position, selected: node.id === selectedId, data: { label: node.label, collapsed: node.collapsed, hasChildren: childrenOf(document, node.id).length > 0, searchHit: searchTerm.trim().length > 0 && node.label.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase()), onRename, onToggleCollapse } })), [document, onRename, onToggleCollapse, searchTerm, selectedId, visible])
-  const edges = useMemo<Edge[]>(() => document.edges.filter((edge) => visible.has(edge.source) && visible.has(edge.target)).map((edge) => ({ ...edge, type: edge.kind === 'relation' ? 'bezier' : 'smoothstep', animated: false, style: edge.kind === 'relation' ? { strokeDasharray: '6 4' } : undefined })), [document.edges, visible])
+  const nodes = useMemo<MindFlowNode[]>(() => document.nodes.filter((node) => visible.has(node.id)).map((node) => ({ id: node.id, type: 'mind', position: node.position, selected: node.id === selectedId, data: { label: node.label, collapsed: node.collapsed, hasChildren: childrenOf(document, node.id).length > 0, searchHit: searchTerm.trim().length > 0 && node.label.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase()), editRequested: node.id === editNodeId, onRename, onEditFinished, onToggleCollapse } })), [document, editNodeId, onEditFinished, onRename, onToggleCollapse, searchTerm, selectedId, visible])
+  const edges = useMemo<Edge[]>(() => document.edges.filter((edge) => visible.has(edge.source) && visible.has(edge.target)).map((edge) => ({ ...edge, type: edge.kind === 'relation' ? 'bezier' : 'smoothstep', animated: false })), [document.edges, visible])
   useEffect(() => {
     if (!flow) return
     const selected = selectedId ? document.nodes.find((node) => node.id === selectedId) : undefined

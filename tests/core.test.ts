@@ -50,6 +50,15 @@ describe('mind-map domain', () => {
     expect(collapsed.nodes).toHaveLength(2)
   })
 
+  it('expands a collapsed parent when adding a child so the new node is visible', () => {
+    const root = addRoot(emptyDocument())
+    const withChild = addChild(root, root.rootIds[0])
+    const collapsed = toggleCollapsed(withChild, root.rootIds[0])
+    const expandedWithNewChild = addChild(collapsed, root.rootIds[0], 'Visible new child')
+    expect(expandedWithNewChild.nodes.find((node) => node.id === root.rootIds[0])!.collapsed).toBe(false)
+    expect(visibleNodeIds(expandedWithNewChild)).toHaveLength(3)
+  })
+
   it('expands the ancestor path for a hidden search match', () => {
     const root = addRoot(emptyDocument())
     const withChild = addChild(root, root.rootIds[0], 'Hidden result')

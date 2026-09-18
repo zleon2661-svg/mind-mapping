@@ -16,7 +16,9 @@ function renderNode(overrides: Partial<MindNodeData> = {}) {
     collapsed: false,
     hasChildren: false,
     searchHit: false,
+    editRequested: false,
     onRename,
+    onEditFinished: vi.fn(),
     onToggleCollapse: vi.fn(),
     ...overrides,
   }
@@ -42,6 +44,20 @@ it('enters inline editing only on double click and focuses and selects the label
   expect(input.selectionStart).toBe(0)
   expect(input.selectionEnd).toBe('Original idea'.length)
   expect(input).toHaveAttribute('maxlength', '500')
+})
+
+it('enters focused inline editing when a newly created node requests it', () => {
+  const onEditFinished = vi.fn()
+  renderNode({ editRequested: true, onEditFinished })
+  const input = screen.getByRole('textbox', { name: 'Edit Original idea' }) as HTMLInputElement
+  expect(input).toHaveFocus()
+  expect(input.selectionStart).toBe(0)
+  expect(input.selectionEnd).toBe('Original idea'.length)
+  expect(onEditFinished).not.toHaveBeenCalled()
+  fireEvent.change(input, { target: { value: 'Typed immediately' } })
+  fireEvent.keyDown(input, { key: 'Enter' })
+  expect(onEditFinished).toHaveBeenCalledOnce()
+  expect(onEditFinished).toHaveBeenCalledWith('node-1')
 })
 
 it('commits trimmed text once on blur or Enter', () => {
@@ -101,7 +117,9 @@ it('isolates editing pointer, mouse, and keyboard events from the canvas', () =>
     collapsed: false,
     hasChildren: false,
     searchHit: false,
+    editRequested: false,
     onRename,
+    onEditFinished: vi.fn(),
     onToggleCollapse: vi.fn(),
   }
   const props = { id: 'node-1', data, selected: true } as NodeProps<MindFlowNode>

@@ -50,6 +50,7 @@ it('forwards React Flow onConnect to onConnectNodes when both source and target 
       onSelect={() => {}}
       onMove={() => {}}
       onRename={() => {}}
+      onEditFinished={() => {}}
       onToggleCollapse={() => {}}
       onConnectNodes={onConnectNodes}
     />
@@ -70,6 +71,7 @@ it('does not call onConnectNodes when source or target is missing', () => {
       onSelect={() => {}}
       onMove={() => {}}
       onRename={() => {}}
+      onEditFinished={() => {}}
       onToggleCollapse={() => {}}
       onConnectNodes={onConnectNodes}
     />
@@ -89,13 +91,14 @@ it('works without onConnectNodes callback', () => {
       onSelect={() => {}}
       onMove={() => {}}
       onRename={() => {}}
+      onEditFinished={() => {}}
       onToggleCollapse={() => {}}
     />
   )
   expect(() => getByTestId('trigger-connect').click()).not.toThrow()
 })
 
-it('renders a visible relation as a dashed curve and hides it when either endpoint is hidden', () => {
+it('renders a visible relation as a solid curve and hides it when either endpoint is hidden', () => {
   let document = addRoot(emptyDocument(), 'Root')
   const root = document.rootIds[0]
   document = addChild(document, root, 'Source')
@@ -105,9 +108,10 @@ it('renders a visible relation as a dashed curve and hides it when either endpoi
   document = addChild(document, branch, 'Target')
   const target = document.nodes.find((node) => node.label === 'Target')!.id
   const related = connectRelatedNodes(document, source, target)
-  const props = { selectedId: undefined, searchTerm: '', centerSignal: 0, onSelect: () => {}, onMove: () => {}, onRename: () => {}, onToggleCollapse: () => {} }
+  const props = { selectedId: undefined, searchTerm: '', centerSignal: 0, onSelect: () => {}, onMove: () => {}, onRename: () => {}, onEditFinished: () => {}, onToggleCollapse: () => {} }
   const { rerender } = render(<MindMapCanvas document={related} {...props} />)
-  expect(capturedEdges).toEqual(expect.arrayContaining([expect.objectContaining({ source, target, type: 'bezier', style: { strokeDasharray: '6 4' } })]))
+  expect(capturedEdges).toEqual(expect.arrayContaining([expect.objectContaining({ source, target, type: 'bezier' })]))
+  expect(capturedEdges.find((edge) => edge.source === source && edge.target === target)?.style?.strokeDasharray).toBeUndefined()
   rerender(<MindMapCanvas document={toggleCollapsed(related, branch)} {...props} />)
   expect(capturedEdges.some((edge) => edge.source === source && edge.target === target)).toBe(false)
 })

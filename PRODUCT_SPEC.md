@@ -12,12 +12,12 @@ The domain layer owns tree operations, import validation, cloning, and automatic
 
 ## Interaction rules
 
-- A selected node receives children with Tab and same-parent siblings with Enter.
+- A selected node receives children with Tab and same-parent siblings with Enter. The created node becomes selected and immediately enters focused inline editing with its default label selected; adding a child also expands a collapsed parent so the editor remains visible.
 - Delete and Backspace remove the selected node. A non-leaf deletion requires an accessible confirmation dialog and removes its subtree.
 - A node label is plain text only. Double-clicking it replaces the label with a focused inline input inside the node; blur or Enter commits once, while Escape cancels. Blank and unchanged edits do not create history.
 - Collapse hides descendants in the view without destroying domain data.
 - Drag changes positions, but records one undoable state only on drag end.
-- Connecting via drag-and-drop adds a directed `relation` from source to target, rendered as a subtle dashed curve. It never changes either node's tree parent, `rootIds`, position, layout, or pre-existing tree edge. Self-connections are rejected and a repeated directed relation is a no-op. Relations are visible only if both endpoints are visible; they are excluded from children/parent/descendant queries, automatic layout, collapse, ancestor expansion, and recursive-delete traversal. Deleting a tree node or subtree removes any relation that references it.
+- Connecting via drag-and-drop adds a directed `relation` from source to target, rendered as a solid curve. It never changes either node's tree parent, `rootIds`, position, layout, or pre-existing tree edge. Self-connections are rejected and a repeated directed relation is a no-op. Relations are visible only if both endpoints are visible; they are excluded from children/parent/descendant queries, automatic layout, collapse, ancestor expansion, and recursive-delete traversal. Deleting a tree node or subtree removes any relation that references it.
 - History snapshots contain valid document states only, cap at 50 prior states, and clear redo after a new mutation.
 - Every document mutation persists a versioned payload to localStorage. Storage failures surface a non-blocking message.
 
